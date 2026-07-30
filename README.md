@@ -1,66 +1,140 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Library-TPC
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A web-based library management system for a school or college library, built with Laravel 11.
 
-## About Laravel
+Librarians use it to catalog books, register students and instructors, issue and return loans, log who enters the library, and print barcode ID passes. An admin dashboard summarizes circulation activity.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Catalog
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Book records with title, author, category, and copy counts
+- Categories, courses, departments, and year levels as reference data
+- Available-copy counts computed from open loans
+- Export the catalog to Excel or PDF, or send it to a print view
 
-## Learning Laravel
+### Borrowers
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- Student records (student number, name, sex, birthdate, course, year level, contact, address, photo)
+- Instructor records tied to a department
+- Photo upload and capture for ID passes
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Circulation
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- Issue several books to one borrower in a single transaction
+- Return books, with an optional flag that increments a damaged-copy counter
+- Borrowers list and returned-books list, both showing who issued and who received each book
 
-## Laravel Sponsors
+### Attendance
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- A tap-in / tap-out screen that reads a scanned barcode in the form `<idNumber>/student` or `<idNumber>/instructor`
+- The first scan opens an attendance record, the next scan closes it
+- Attendance history for students and instructors, timestamped in `Asia/Manila`
 
-### Premium Partners
+### ID passes
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+- Print a single pass for one student or instructor
+- Bulk print: pick many students and instructors, print their passes together
 
-## Contributing
+### Users and access
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- Username and password login, throttled to 3 attempts per minute
+- Every route behind `auth`
+- User management (`/user/*`) restricted to the `Administrator` and `Librarian` roles
 
-## Code of Conduct
+### Dashboard
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- Totals for books, students, instructors, and active borrowers
+- Top 5 borrowed books
+- Borrowing activity by month
+- Courses and departments that borrow most often
 
-## Security Vulnerabilities
+## Tech stack
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Layer | Choice |
+|---|---|
+| Framework | Laravel 11 (PHP 8.2+) |
+| Auth scaffolding | Jetstream 5 + Fortify + Sanctum, Livewire 3 stack |
+| Frontend | Blade, Tailwind CSS 3, Vite 5 |
+| Tests | Pest 3 |
+| Database | MySQL (the dashboard uses `DATE_FORMAT`, a MySQL function) |
 
-## License
+## Getting started
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+composer install
+npm install
+
+# the repo has no .env.example yet, so write a .env by hand
+# (copy one from a fresh `laravel new` project and set DB_* for MySQL)
+php artisan key:generate
+
+php artisan migrate
+php artisan storage:link
+
+composer run dev     # serve + queue worker + vite
+```
+
+`composer run dev` runs `php artisan serve`, `php artisan queue:listen`, and `npm run dev` together. To run them separately, use `php artisan serve` and `npm run dev` in two terminals.
+
+For production assets:
+
+```bash
+npm run build
+```
+
+Run the test suite with:
+
+```bash
+php artisan test
+```
+
+## Routes
+
+| Area | Path |
+|---|---|
+| Dashboard | `/` |
+| Login | `/login` |
+| Students | `/student`, `/student/add`, `/student/{id}` |
+| Instructors | `/instructor`, `/instructor/add`, `/instructor/{id}` |
+| Books | `/book`, `/book/add`, `/book/{id}` |
+| Categories | `/category` |
+| Courses | `/course` |
+| Departments | `/department` |
+| Issue a loan | `/borrowers-form` |
+| Open loans | `/borrowers-list` |
+| Returned books | `/return-book-list` |
+| Tap in / tap out | `/tap-in-tap-out` |
+| Attendance history | `/history` |
+| Bulk print passes | `/bulk-print` |
+| Users (admin) | `/user` |
+| Exports | `/export-books-excel`, `/export-books-pdf`, `/print-book` |
+
+Full definitions live in `routes/web.php`.
+
+## Layout
+
+```text
+app/
+  Http/Controllers/Controllers/   controllers for every domain area
+  Models/                         User (domain models pending, see below)
+  Actions/                        Fortify and Jetstream actions
+database/migrations/              framework tables (domain tables pending)
+resources/views/                  Blade templates
+routes/web.php                    all application routes
+```
+
+## Repository status
+
+The first commit carries the Laravel skeleton, the Jetstream scaffolding, and the domain controllers. Several pieces the controllers depend on are not committed yet:
+
+- **Eloquent models.** `app/Models/` holds only `User`. The controllers reference `Book`, `Student`, `Instructor`, `Borrowed`, `Category`, `Course`, `Department`, `YearLevel`, `Attendance`, and `DamagedBooks`.
+- **Domain migrations.** `database/migrations/` covers users, cache, jobs, two-factor columns, and access tokens. The tables the app queries (`books`, `students`, `instructors`, `borrowed`, `attendance`, `courses`, `year_levels`, `category`) have no migrations.
+- **Domain views.** The controllers render `book.*`, `student.*`, `transaction.*`, `attendance.*`, `dashboard.dashboard`, `user.*`, and `components.print-pass`, none of which are in `resources/views/`.
+- **Controller directory.** The files sit in `app/Http/Controllers/Controllers/` while declaring `namespace App\Http\Controllers`, so PSR-4 autoloading will not find them. Move them up one level to `app/Http/Controllers/`.
+- **`maatwebsite/excel`.** `BookController` imports it for the Excel and PDF exports, but `composer.json` does not require it. Add it with `composer require maatwebsite/excel`.
+- **`role` middleware.** `routes/web.php` applies `role:Administrator,Librarian`, and no alias is registered in `bootstrap/app.php`. Register it there, or the user routes will throw.
+- **`App\Exports\BooksExport` and `App\Http\Controllers\DamageBookController`** are imported but missing.
+- **`.env.example`.** No template ships with the repo, so a new clone has nothing to copy from.
+
+Anyone cloning this repo should expect to supply those pieces before the app boots.
